@@ -1,24 +1,40 @@
 .app {
   max-width: 640px;
   margin: 0 auto;
-  padding: 40px 20px 80px;
+  padding: 48px 20px 80px;
 }
 
 .app-header {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+}
+
+.app-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  margin-bottom: 8px;
 }
 
 .app-header h1 {
-  margin: 0 0 4px;
-  font-size: 32px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  margin: 0 0 6px;
+  font-size: 34px;
   letter-spacing: -0.5px;
+  text-wrap: balance;
   color: var(--text-h);
 }
 
 .app-subtitle {
   color: var(--text);
-  opacity: 0.75;
-  font-size: 14px;
+  opacity: 0.8;
+  font-size: 14.5px;
 }
 
 /* Add task form */
@@ -26,10 +42,10 @@
 .add-task-form {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 24px;
-  box-shadow: var(--shadow);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-sm);
 }
 
 .add-task-row {
@@ -39,16 +55,17 @@
 }
 
 .add-task-row + .add-task-row {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .add-task-input {
   flex: 1;
   min-width: 0;
   font: inherit;
-  padding: 10px 12px;
+  font-size: 15px;
+  padding: 11px 13px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 9px;
   background: var(--bg);
   color: var(--text-h);
 }
@@ -61,18 +78,19 @@
 }
 
 .add-task-submit {
-  font: inherit;
-  font-weight: 600;
-  padding: 10px 18px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  padding: 11px 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   background: var(--accent);
-  color: white;
+  color: #fff;
   cursor: pointer;
 }
 
 .add-task-submit:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.06);
 }
 
 .add-task-options {
@@ -92,7 +110,7 @@
   font: inherit;
   padding: 6px 8px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 7px;
   background: var(--bg);
   color: var(--text-h);
 }
@@ -118,8 +136,9 @@
 .empty-state {
   text-align: center;
   color: var(--text);
-  opacity: 0.6;
-  padding: 32px 0;
+  opacity: 0.65;
+  padding: 40px 0;
+  font-size: 15px;
 }
 
 .task-item {
@@ -128,18 +147,23 @@
   gap: 12px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  box-shadow: var(--shadow);
+  border-radius: 11px;
+  padding: 13px 14px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.task-item:hover {
+  border-color: var(--border-strong);
 }
 
 .task-item.is-dragging {
-  box-shadow: rgba(20, 20, 40, 0.15) 0 8px 24px -6px;
+  box-shadow: var(--shadow-md);
 }
 
 .task-checkbox {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   flex-shrink: 0;
   accent-color: var(--accent);
   cursor: pointer;
@@ -150,10 +174,11 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .task-title {
+  font-size: 15.5px;
   color: var(--text-h);
   word-break: break-word;
 }
@@ -171,11 +196,13 @@
 
 .badge {
   font-size: 12px;
-  padding: 2px 8px;
+  font-weight: 600;
+  padding: 2px 9px;
   border-radius: 999px;
   background: var(--accent-bg);
-  color: var(--accent);
+  color: var(--accent-ink);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .badge-due {
@@ -185,8 +212,8 @@
 
 .badge-overdue {
   background: transparent;
-  color: var(--overdue);
-  font-weight: 600;
+  color: var(--danger);
+  font-weight: 700;
 }
 
 .task-delete {

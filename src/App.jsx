@@ -9,6 +9,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
+        <span className="app-eyebrow">⌁ Saved only on this device</span>
         <h1>Task List</h1>
         <p className="app-subtitle">
           {tasks.length === 0

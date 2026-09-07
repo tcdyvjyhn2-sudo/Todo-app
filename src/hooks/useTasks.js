@@ -1,13 +1,62 @@
 import { useCallback, useEffect, useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
-import { getNextOccurrence } from '../utils/recurrence';
+import { getNextOccurrence, toISODate } from '../utils/recurrence';
 
 const STORAGE_KEY = 'todo-app.tasks.v1';
+
+function offsetDate(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return toISODate(d);
+}
+
+// Shown only the very first time the app opens with no saved data, so a new
+// user sees what recurring vs. one-off tasks look like instead of a blank list.
+function exampleTasks() {
+  return [
+    {
+      id: crypto.randomUUID(),
+      title: 'Team standup (example)',
+      dueDate: offsetDate(0),
+      recurring: true,
+      interval: 'daily',
+      completed: false,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Water the plants (example)',
+      dueDate: offsetDate(2),
+      recurring: true,
+      interval: 'weekly',
+      completed: false,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Renew passport (example)',
+      dueDate: offsetDate(30),
+      recurring: false,
+      interval: null,
+      completed: false,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Reply to landlord (example)',
+      dueDate: null,
+      recurring: false,
+      interval: null,
+      completed: true,
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}
 
 function loadTasks() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (raw === null) return exampleTasks();
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch {
