@@ -1,0 +1,51 @@
+:root {
+  --text: #4b4b55;
+  --text-h: #16171d;
+  --bg: #f7f7fa;
+  --surface: #ffffff;
+  --border: #e2e2e8;
+  --accent: #6d4bff;
+  --accent-bg: rgba(109, 75, 255, 0.1);
+  --danger: #d1435b;
+  --overdue: #d1435b;
+  --shadow: rgba(20, 20, 40, 0.06) 0 1px 2px, rgba(20, 20, 40, 0.06) 0 8px 20px -6px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  font: 16px/1.5 var(--sans);
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #c3c3cc;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --surface: #1e1f27;
+    --border: #2e303a;
+    --accent: #a78bfa;
+    --accent-bg: rgba(167, 139, 250, 0.15);
+    --danger: #f27087;
+    --overdue: #f27087;
+    --shadow: rgba(0, 0, 0, 0.4) 0 1px 2px, rgba(0, 0, 0, 0.3) 0 8px 20px -6px;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+}
+
+#root {
+  min-height: 100svh;
+}
