@@ -4,8 +4,8 @@ const STATUS_TEXT = {
   local: 'Saved only on this device',
   connecting: 'Connecting to Dropbox…',
   synced: 'Synced with Dropbox',
-  offline: 'Dropbox unreachable — showing last synced copy',
-  error: 'Dropbox sync error',
+  offline: 'Offline — changes saved here, syncing when you reconnect',
+  error: 'Dropbox sync problem',
 };
 
 export default function SyncPanel({ sync }) {

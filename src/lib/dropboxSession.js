@@ -1,4 +1,4 @@
-import { refreshAccessToken } from './dropboxAuth';
+import { completeAuthorizeIfRedirected, refreshAccessToken } from './dropboxAuth';
 
 const APP_KEY_STORAGE = 'dropbox.appKey';
 const TOKENS_STORAGE = 'dropbox.tokens'; // { refreshToken, accessToken, expiresAt }
@@ -39,6 +39,32 @@ export function saveTokensFromAuthResponse(payload) {
 
 export function disconnect() {
   localStorage.removeItem(TOKENS_STORAGE);
+}
+
+// Redeeming an OAuth code must happen exactly once per page load: the code is
+// single-use and the URL is cleaned as soon as it is read. Memoising the
+// promise at module scope keeps that true no matter how many times (or how
+// concurrently) a component effect asks for it.
+let authBootstrap = null;
+
+export function bootstrapAuth() {
+  if (!authBootstrap) {
+    authBootstrap = (async () => {
+      const appKey = getStoredAppKey();
+      if (!appKey) return { connected: isConnected(), justConnected: false, error: '' };
+      try {
+        const payload = await completeAuthorizeIfRedirected(appKey);
+        if (payload) {
+          saveTokensFromAuthResponse(payload);
+          return { connected: true, justConnected: true, error: '' };
+        }
+      } catch (err) {
+        return { connected: isConnected(), justConnected: false, error: err.message };
+      }
+      return { connected: isConnected(), justConnected: false, error: '' };
+    })();
+  }
+  return authBootstrap;
 }
 
 // Returns a currently-valid access token, refreshing it first if needed.
