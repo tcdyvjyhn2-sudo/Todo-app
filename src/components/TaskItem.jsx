@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { intervalLabel, formatDueDate, isOverdue } from '../utils/recurrence';
+import TaskBadges from './TaskBadges';
 
 export default function TaskItem({ task, onToggle, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -13,34 +13,23 @@ export default function TaskItem({ task, onToggle, onDelete }) {
     opacity: isDragging ? 0.6 : 1,
   };
 
-  const overdue = !task.completed && isOverdue(task.dueDate);
-
   return (
     <li
       ref={setNodeRef}
       style={style}
-      className={`task-item${task.completed ? ' is-completed' : ''}${isDragging ? ' is-dragging' : ''}`}
+      className={`task-item${isDragging ? ' is-dragging' : ''}`}
     >
       <input
         type="checkbox"
-        checked={task.completed}
+        checked={false}
         onChange={() => onToggle(task.id)}
         className="task-checkbox"
-        aria-label={`Mark "${task.title}" as ${task.completed ? 'not done' : 'done'}`}
+        aria-label={`Mark "${task.title}" as done`}
       />
 
       <div className="task-body">
         <span className="task-title">{task.title}</span>
-        <span className="task-meta">
-          {task.recurring && (
-            <span className="badge badge-recurring">↻ {intervalLabel(task.interval)}</span>
-          )}
-          {task.dueDate && (
-            <span className={`badge badge-due${overdue ? ' badge-overdue' : ''}`}>
-              {formatDueDate(task.dueDate)}
-            </span>
-          )}
-        </span>
+        <TaskBadges task={task} />
       </div>
 
       <button

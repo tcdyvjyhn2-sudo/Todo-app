@@ -1,15 +1,15 @@
 import { useTasks } from './hooks/useTasks';
 import AddTaskForm from './components/AddTaskForm';
 import TaskList from './components/TaskList';
+import SyncPanel from './components/SyncPanel';
 import './App.css';
 
 export default function App() {
-  const { tasks, addTask, deleteTask, toggleComplete, reorderTasks } = useTasks();
+  const { tasks, addTask, deleteTask, toggleComplete, reorderTasks, sync } = useTasks();
 
   return (
     <div className="app">
       <header className="app-header">
-        <span className="app-eyebrow">⌁ Saved only on this device</span>
         <h1>Task List</h1>
         <p className="app-subtitle">
           {tasks.length === 0
@@ -17,6 +17,8 @@ export default function App() {
             : `${tasks.filter((t) => !t.completed).length} of ${tasks.length} remaining`}
         </p>
       </header>
+
+      <SyncPanel sync={sync} />
 
       <AddTaskForm onAdd={addTask} />
 

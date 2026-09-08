@@ -77,3 +77,13 @@ export function isOverdue(dueDateISO) {
   const date = startOfDay(new Date(`${dueDateISO}T00:00:00`));
   return date < today;
 }
+
+// True once a recurring task's due date has arrived (today or earlier) -
+// the point at which a completed recurring task should come back off the
+// completed list. Date-only: there is no time-of-day trigger.
+export function isDueOrPast(dueDateISO) {
+  if (!dueDateISO) return true;
+  const today = startOfDay(new Date());
+  const date = startOfDay(new Date(`${dueDateISO}T00:00:00`));
+  return date <= today;
+}
