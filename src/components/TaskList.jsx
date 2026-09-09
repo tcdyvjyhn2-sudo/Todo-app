@@ -14,7 +14,7 @@ import {
 import TaskItem from './TaskItem';
 import CompletedTaskItem from './CompletedTaskItem';
 
-export default function TaskList({ tasks, onToggle, onDelete, onReorder }) {
+export default function TaskList({ tasks, categories, onToggle, onDelete, onReorder }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -31,8 +31,13 @@ export default function TaskList({ tasks, onToggle, onDelete, onReorder }) {
     return <p className="empty-state">No tasks yet. Add one above to get started.</p>;
   }
 
+  // Active tasks keep the order you drag them into. Completed tasks are done
+  // and don't need reordering, so that section sorts alphabetically instead.
   const active = tasks.filter((t) => !t.completed);
-  const completed = tasks.filter((t) => t.completed);
+  const completed = tasks
+    .filter((t) => t.completed)
+    .slice()
+    .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
 
   return (
     <>
@@ -40,7 +45,13 @@ export default function TaskList({ tasks, onToggle, onDelete, onReorder }) {
         <SortableContext items={active.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           <ul className="task-list">
             {active.map((task) => (
-              <TaskItem key={task.id} task={task} onToggle={onToggle} onDelete={onDelete} />
+              <TaskItem
+                key={task.id}
+                task={task}
+                categories={categories}
+                onToggle={onToggle}
+                onDelete={onDelete}
+              />
             ))}
           </ul>
         </SortableContext>
@@ -55,7 +66,13 @@ export default function TaskList({ tasks, onToggle, onDelete, onReorder }) {
           <p className="completed-label">Completed ({completed.length})</p>
           <ul className="task-list">
             {completed.map((task) => (
-              <CompletedTaskItem key={task.id} task={task} onToggle={onToggle} onDelete={onDelete} />
+              <CompletedTaskItem
+                key={task.id}
+                task={task}
+                categories={categories}
+                onToggle={onToggle}
+                onDelete={onDelete}
+              />
             ))}
           </ul>
         </>

@@ -2,7 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TaskBadges from './TaskBadges';
 
-export default function TaskItem({ task, onToggle, onDelete }) {
+export default function TaskItem({ task, categories, onToggle, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   });
@@ -29,7 +29,7 @@ export default function TaskItem({ task, onToggle, onDelete }) {
 
       <div className="task-body">
         <span className="task-title">{task.title}</span>
-        <TaskBadges task={task} />
+        <TaskBadges task={task} categories={categories} />
       </div>
 
       <button

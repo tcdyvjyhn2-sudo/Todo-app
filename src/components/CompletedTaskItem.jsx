@@ -1,6 +1,6 @@
 import TaskBadges from './TaskBadges';
 
-export default function CompletedTaskItem({ task, onToggle, onDelete }) {
+export default function CompletedTaskItem({ task, categories, onToggle, onDelete }) {
   return (
     <li className="task-item is-completed">
       <input
@@ -13,7 +13,7 @@ export default function CompletedTaskItem({ task, onToggle, onDelete }) {
 
       <div className="task-body">
         <span className="task-title">{task.title}</span>
-        <TaskBadges task={task} />
+        <TaskBadges task={task} categories={categories} />
       </div>
 
       <button

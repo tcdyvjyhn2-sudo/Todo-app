@@ -22,8 +22,11 @@ async function apiFetch(url, accessToken, extraHeaders, body) {
   return res;
 }
 
-// Returns the saved task array, or null if no file has been saved yet.
-export async function downloadTasks(accessToken) {
+// Returns the saved JSON value, or null if no file has been saved yet. This
+// module doesn't know or care about the app's data shape - that's decided by
+// the caller (useTasks.js), which also handles reading an older shape saved
+// before a schema change.
+export async function downloadState(accessToken) {
   const res = await apiFetch(
     'https://content.dropboxapi.com/2/files/download',
     accessToken,
@@ -41,16 +44,15 @@ export async function downloadTasks(accessToken) {
 
   const text = await res.text();
   try {
-    const parsed = JSON.parse(text);
-    return Array.isArray(parsed) ? parsed : null;
+    return JSON.parse(text);
   } catch {
     return null;
   }
 }
 
-// Overwrites /tasks.json with the given task array. Last-writer-wins by
-// design - see the app's sync status text for what that means in practice.
-export async function uploadTasks(accessToken, tasks) {
+// Overwrites /tasks.json with the given JSON-serialisable value. Last-writer-
+// wins by design - see the app's sync status text for what that means.
+export async function uploadState(accessToken, state) {
   const res = await apiFetch(
     'https://content.dropboxapi.com/2/files/upload',
     accessToken,
@@ -62,7 +64,7 @@ export async function uploadTasks(accessToken, tasks) {
       }),
       'Content-Type': 'application/octet-stream',
     },
-    JSON.stringify(tasks)
+    JSON.stringify(state)
   );
 
   if (!res.ok) {

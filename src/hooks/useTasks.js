@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 import { getNextOccurrence, isDueOrPast, toISODate } from '../utils/recurrence';
 import { beginAuthorize } from '../lib/dropboxAuth';
-import { downloadTasks, uploadTasks, DropboxAuthError } from '../lib/dropboxStore';
+import { downloadState, uploadState, DropboxAuthError } from '../lib/dropboxStore';
 import {
   bootstrapAuth,
   disconnect as disconnectDropboxSession,
@@ -23,10 +23,16 @@ function offsetDate(days) {
   return toISODate(d);
 }
 
+function exampleCategories() {
+  return [{ id: crypto.randomUUID(), name: 'Work', color: 'blue' }];
+}
+
 // Shown only the very first time the app opens with no saved data, so a new
-// user sees what recurring vs. one-off tasks look like instead of a blank list.
-function exampleTasks() {
+// user sees what recurring, categorized, and one-off tasks look like instead
+// of a blank list.
+function exampleTasks(categories) {
   const now = new Date().toISOString();
+  const workId = categories[0]?.id ?? null;
   return [
     {
       id: crypto.randomUUID(),
@@ -34,6 +40,7 @@ function exampleTasks() {
       dueDate: offsetDate(0),
       recurring: true,
       interval: 'daily',
+      categoryId: workId,
       completed: false,
       createdAt: now,
     },
@@ -43,6 +50,7 @@ function exampleTasks() {
       dueDate: offsetDate(2),
       recurring: true,
       interval: 'weekly',
+      categoryId: null,
       completed: false,
       createdAt: now,
     },
@@ -52,6 +60,7 @@ function exampleTasks() {
       dueDate: offsetDate(30),
       recurring: false,
       interval: null,
+      categoryId: null,
       completed: false,
       createdAt: now,
     },
@@ -61,28 +70,45 @@ function exampleTasks() {
       dueDate: null,
       recurring: false,
       interval: null,
+      categoryId: null,
       completed: true,
       createdAt: now,
     },
   ];
 }
 
+// Accepts whatever shape was stored - a bare array (the format used before
+// categories existed) or the current {tasks, categories} object - and always
+// returns the current shape. Returns null for anything unrecognisable.
+function normalizeState(parsed) {
+  if (Array.isArray(parsed)) return { tasks: parsed, categories: [] };
+  if (parsed && Array.isArray(parsed.tasks)) {
+    return {
+      tasks: parsed.tasks,
+      categories: Array.isArray(parsed.categories) ? parsed.categories : [],
+    };
+  }
+  return null;
+}
+
 // The local copy is always kept current, connected to Dropbox or not, so the
 // app opens instantly and keeps working with no network.
-function readLocalTasks() {
+function readLocalState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw === null) return exampleTasks();
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (raw === null) {
+      const categories = exampleCategories();
+      return { tasks: exampleTasks(categories), categories };
+    }
+    return normalizeState(JSON.parse(raw)) ?? { tasks: [], categories: [] };
   } catch {
-    return [];
+    return { tasks: [], categories: [] };
   }
 }
 
-function writeLocalTasks(tasks) {
+function writeLocalState(state) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
     // Storage unavailable (private browsing quota). The list still works for
     // this page session.
@@ -105,17 +131,17 @@ function writePending(pending) {
 }
 
 // Flips back to active any completed recurring task whose next occurrence has
-// arrived. Returns the same array reference when nothing changed.
-function reactivateDueTasks(tasks) {
+// arrived. Returns the same state reference when nothing changed.
+function reactivateDueTasks(state) {
   let changed = false;
-  const next = tasks.map((t) => {
+  const tasks = state.tasks.map((t) => {
     if (t.completed && t.recurring && isDueOrPast(t.dueDate)) {
       changed = true;
       return { ...t, completed: false };
     }
     return t;
   });
-  return changed ? next : tasks;
+  return changed ? { ...state, tasks } : state;
 }
 
 function describeFailure(err) {
@@ -126,7 +152,7 @@ function describeFailure(err) {
 }
 
 export function useTasks() {
-  const [tasks, setTasks] = useState(readLocalTasks);
+  const [state, setState] = useState(readLocalState);
   // 'local' | 'connecting' | 'synced' | 'offline' | 'error'
   const [syncStatus, setSyncStatus] = useState(() =>
     isDropboxConnected() ? 'connecting' : 'local'
@@ -135,47 +161,43 @@ export function useTasks() {
   const [dropboxAppKey, setDropboxAppKey] = useState(getStoredAppKey);
   const [dropboxConnected, setDropboxConnected] = useState(isDropboxConnected);
 
-  const tasksRef = useRef(tasks);
-  tasksRef.current = tasks;
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const pushTimer = useRef(null);
 
-  // Sends the current list to Dropbox. Leaves the pending flag set if it
+  // Sends the current state to Dropbox. Leaves the pending flag set if it
   // fails, so a later attempt retries the same edits.
-  const pushNow = useCallback(async (nextTasks) => {
+  const pushNow = useCallback(async (nextState) => {
     if (!isDropboxConnected()) return;
     try {
       const accessToken = await getValidAccessToken();
       if (!accessToken) return;
-      await uploadTasks(accessToken, nextTasks);
+      await uploadState(accessToken, nextState);
       writePending(false);
       setSyncStatus('synced');
       setSyncError('');
     } catch (err) {
       const kind = describeFailure(err);
       setSyncStatus(kind === 'auth' ? 'error' : kind);
-      setSyncError(
-        kind === 'offline'
-          ? ''
-          : err.message || 'Could not save to Dropbox.'
-      );
+      setSyncError(kind === 'offline' ? '' : err.message || 'Could not save to Dropbox.');
     }
   }, []);
 
   const schedulePush = useCallback(
-    (nextTasks) => {
+    (nextState) => {
       clearTimeout(pushTimer.current);
-      pushTimer.current = setTimeout(() => pushNow(nextTasks), PUSH_DEBOUNCE_MS);
+      pushTimer.current = setTimeout(() => pushNow(nextState), PUSH_DEBOUNCE_MS);
     },
     [pushNow]
   );
 
   // Single write path: local storage always, Dropbox too when connected.
-  const applyChange = useCallback(
+  const applyState = useCallback(
     (updater) => {
-      setTasks((prev) => {
+      setState((prev) => {
         const next = typeof updater === 'function' ? updater(prev) : updater;
         if (next === prev) return prev;
-        writeLocalTasks(next);
+        writeLocalState(next);
         if (isDropboxConnected()) {
           writePending(true);
           schedulePush(next);
@@ -184,6 +206,18 @@ export function useTasks() {
       });
     },
     [schedulePush]
+  );
+
+  // Convenience wrapper for changes that only touch the task list.
+  const applyTasks = useCallback(
+    (updater) => {
+      applyState((prev) => {
+        const nextTasks = typeof updater === 'function' ? updater(prev.tasks) : updater;
+        if (nextTasks === prev.tasks) return prev;
+        return { ...prev, tasks: nextTasks };
+      });
+    },
+    [applyState]
   );
 
   // Reconciles with Dropbox. Unsynced local edits win over the remote copy;
@@ -196,28 +230,29 @@ export function useTasks() {
       if (!accessToken) return;
 
       if (readPending()) {
-        await uploadTasks(accessToken, tasksRef.current);
+        await uploadState(accessToken, stateRef.current);
         writePending(false);
         setSyncStatus('synced');
         setSyncError('');
         return;
       }
 
-      let remote = await downloadTasks(accessToken);
+      const rawRemote = await downloadState(accessToken);
+      let remote = rawRemote === null ? null : normalizeState(rawRemote);
       if (remote === null) {
-        // First connection for this Dropbox account: seed it from whatever
-        // this device already has.
-        remote = tasksRef.current;
-        await uploadTasks(accessToken, remote);
+        // First connection for this Dropbox account (or an unreadable file):
+        // seed it from whatever this device already has.
+        remote = stateRef.current;
+        await uploadState(accessToken, remote);
       }
 
       const reactivated = reactivateDueTasks(remote);
       if (reactivated !== remote) {
-        await uploadTasks(accessToken, reactivated);
+        await uploadState(accessToken, reactivated);
       }
 
-      setTasks(reactivated);
-      writeLocalTasks(reactivated);
+      setState(reactivated);
+      writeLocalState(reactivated);
       setSyncStatus('synced');
       setSyncError('');
     } catch (err) {
@@ -239,9 +274,9 @@ export function useTasks() {
     let cancelled = false;
 
     (async () => {
-      const local = reactivateDueTasks(readLocalTasks());
-      writeLocalTasks(local);
-      if (!cancelled) setTasks(local);
+      const local = reactivateDueTasks(readLocalState());
+      writeLocalState(local);
+      if (!cancelled) setState(local);
 
       const { connected, justConnected, error } = await bootstrapAuth();
 
@@ -295,14 +330,14 @@ export function useTasks() {
   // Bring recurring tasks back when their date arrives, without a reload.
   useEffect(() => {
     const interval = setInterval(() => {
-      applyChange((prev) => reactivateDueTasks(prev));
+      applyState((prev) => reactivateDueTasks(prev));
     }, 60000);
     return () => clearInterval(interval);
-  }, [applyChange]);
+  }, [applyState]);
 
   const addTask = useCallback(
-    ({ title, dueDate, recurring, interval }) => {
-      applyChange((prev) => [
+    ({ title, dueDate, recurring, interval, categoryId }) => {
+      applyTasks((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
@@ -310,24 +345,25 @@ export function useTasks() {
           dueDate: dueDate || null,
           recurring,
           interval: recurring ? interval : null,
+          categoryId: categoryId || null,
           completed: false,
           createdAt: new Date().toISOString(),
         },
       ]);
     },
-    [applyChange]
+    [applyTasks]
   );
 
   const deleteTask = useCallback(
     (id) => {
-      applyChange((prev) => prev.filter((t) => t.id !== id));
+      applyTasks((prev) => prev.filter((t) => t.id !== id));
     },
-    [applyChange]
+    [applyTasks]
   );
 
   const toggleComplete = useCallback(
     (id) => {
-      applyChange((prev) =>
+      applyTasks((prev) =>
         prev.map((t) => {
           if (t.id !== id) return t;
           if (t.completed) return { ...t, completed: false };
@@ -343,26 +379,33 @@ export function useTasks() {
         })
       );
     },
-    [applyChange]
+    [applyTasks]
   );
 
   const updateTask = useCallback(
     (id, changes) => {
-      applyChange((prev) => prev.map((t) => (t.id === id ? { ...t, ...changes } : t)));
+      applyTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...changes } : t)));
     },
-    [applyChange]
+    [applyTasks]
   );
 
   const reorderTasks = useCallback(
     (activeId, overId) => {
-      applyChange((prev) => {
+      applyTasks((prev) => {
         const oldIndex = prev.findIndex((t) => t.id === activeId);
         const newIndex = prev.findIndex((t) => t.id === overId);
         if (oldIndex === -1 || newIndex === -1) return prev;
         return arrayMove(prev, oldIndex, newIndex);
       });
     },
-    [applyChange]
+    [applyTasks]
+  );
+
+  const addCategory = useCallback(
+    (category) => {
+      applyState((prev) => ({ ...prev, categories: [...prev.categories, category] }));
+    },
+    [applyState]
   );
 
   const saveDropboxAppKey = useCallback((appKey) => {
@@ -384,8 +427,10 @@ export function useTasks() {
   }, []);
 
   return {
-    tasks,
+    tasks: state.tasks,
+    categories: state.categories,
     addTask,
+    addCategory,
     deleteTask,
     toggleComplete,
     updateTask,
