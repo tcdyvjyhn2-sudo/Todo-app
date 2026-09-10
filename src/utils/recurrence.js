@@ -35,19 +35,6 @@ export function intervalLabel(interval) {
   return INTERVALS.find((i) => i.value === interval)?.label ?? interval;
 }
 
-// A distinct color per recurrence so daily/weekly/monthly/yearly tasks are
-// tellable apart at a glance, not just by reading the badge text.
-const INTERVAL_DOT_COLORS = {
-  daily: '#3b82f6',
-  weekly: '#8b5cf6',
-  monthly: '#14b8a6',
-  yearly: '#eab308',
-};
-
-export function intervalColor(interval) {
-  return INTERVAL_DOT_COLORS[interval] ?? '#8b8b9e';
-}
-
 function startOfDay(date) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);

@@ -4,7 +4,6 @@ import {
   DAYS_OF_MONTH,
   MONTH_NAMES,
   DEFAULT_TIME_OF_DAY,
-  intervalColor,
   formatDueDate,
   isOverdue,
   initialOccurrence,
@@ -21,9 +20,6 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
   const category = categories?.find((c) => c.id === task.categoryId);
   const categoryTint = category
     ? `color-mix(in srgb, ${categoryColorHex(category.color)} 28%, var(--surface))`
-    : 'var(--border)';
-  const intervalTint = task.recurring
-    ? `color-mix(in srgb, ${intervalColor(task.interval)} 28%, var(--surface))`
     : 'var(--border)';
 
   function handleCategoryChange(e) {
@@ -109,7 +105,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
 
         <select
           className="badge badge-select"
-          style={{ background: intervalTint }}
+          style={{ background: categoryTint }}
           value={task.recurring ? task.interval : NOT_RECURRING}
           onChange={handleIntervalChange}
           aria-label={`Recurrence for "${task.title}"`}
@@ -125,7 +121,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
         {task.recurring && task.interval === 'weekly' && (
           <select
             className="badge badge-select"
-            style={{ background: intervalTint }}
+            style={{ background: categoryTint }}
             value={task.dayOfWeek ?? 0}
             onChange={handleDayOfWeekChange}
             aria-label={`Day of the week for "${task.title}"`}
@@ -140,7 +136,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
         {task.recurring && task.interval === 'monthly' && (
           <select
             className="badge badge-select"
-            style={{ background: intervalTint }}
+            style={{ background: categoryTint }}
             value={task.dayOfMonth ?? 1}
             onChange={handleDayOfMonthChange}
             aria-label={`Day of the month for "${task.title}"`}
@@ -156,7 +152,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
           <>
             <select
               className="badge badge-select"
-              style={{ background: intervalTint }}
+              style={{ background: categoryTint }}
               value={task.monthOfYear ?? 0}
               onChange={handleMonthOfYearChange}
               aria-label={`Month for "${task.title}"`}
@@ -169,7 +165,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
             </select>
             <select
               className="badge badge-select"
-              style={{ background: intervalTint }}
+              style={{ background: categoryTint }}
               value={task.dayOfMonth ?? 1}
               onChange={handleDayOfMonthChange}
               aria-label={`Day of the month for "${task.title}"`}
@@ -184,7 +180,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
         )}
 
         {task.recurring && (
-          <TimeOfDayBadge task={task} onUpdateTask={onUpdateTask} style={{ background: intervalTint }} />
+          <TimeOfDayBadge task={task} onUpdateTask={onUpdateTask} style={{ background: categoryTint }} />
         )}
 
         {task.dueDate && (
