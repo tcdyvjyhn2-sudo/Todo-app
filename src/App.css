@@ -334,8 +334,14 @@
 .list-toolbar {
   display: flex;
   justify-content: flex-end;
+  gap: 16px;
   margin-bottom: 8px;
   font-size: 13px;
+}
+
+.list-toolbar .is-active {
+  color: var(--text-h);
+  text-decoration: underline;
 }
 
 .task-list {

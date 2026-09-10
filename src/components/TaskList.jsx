@@ -34,8 +34,30 @@ function sortByCategory(tasks, categories) {
     .map((entry) => entry.task);
 }
 
+// A single sortable key combining date and time (tasks with no time sort as
+// if due at the start of that day), so "due date and time of day" sort
+// together as one ordering. Tasks with no due date at all sort last.
+function dueDateTimeKey(task) {
+  if (!task.dueDate) return null;
+  return `${task.dueDate}T${task.timeOfDay ?? '00:00'}`;
+}
+
+function sortByDueDate(tasks) {
+  return tasks
+    .map((task, index) => ({ task, index, key: dueDateTimeKey(task) }))
+    .sort((a, b) => {
+      if (a.key === null && b.key === null) return a.index - b.index;
+      if (a.key === null) return 1;
+      if (b.key === null) return -1;
+      if (a.key < b.key) return -1;
+      if (a.key > b.key) return 1;
+      return a.index - b.index;
+    })
+    .map((entry) => entry.task);
+}
+
 export default function TaskList({ tasks, categories, onToggle, onDelete, onReorder, onUpdateTask }) {
-  const [sortMode, setSortMode] = useState('manual'); // 'manual' | 'category'
+  const [sortMode, setSortMode] = useState('manual'); // 'manual' | 'category' | 'dueDate'
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -53,17 +75,25 @@ export default function TaskList({ tasks, categories, onToggle, onDelete, onReor
     return <p className="empty-state">No tasks yet. Add one above to get started.</p>;
   }
 
-  // Active tasks keep the order you drag them into, unless "Sort by category"
-  // is on - that only changes how the list is displayed, never the stored
-  // order, so switching back to manual instantly restores it.
+  // Active tasks keep the order you drag them into. "Sort by category" and
+  // "Sort by due date" only change how the list is displayed - the stored
+  // order is never touched, so switching back to manual instantly and
+  // exactly restores it.
   const manualActive = tasks.filter((t) => !t.completed);
-  const active = sortMode === 'category' ? sortByCategory(manualActive, categories) : manualActive;
+  let active = manualActive;
+  if (sortMode === 'category') active = sortByCategory(manualActive, categories);
+  if (sortMode === 'dueDate') active = sortByDueDate(manualActive);
+
   const completed = tasks
     .filter((t) => t.completed)
     .slice()
     .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
 
-  const dragDisabled = sortMode === 'category';
+  const dragDisabled = sortMode !== 'manual';
+
+  function toggleSort(mode) {
+    setSortMode((current) => (current === mode ? 'manual' : mode));
+  }
 
   return (
     <>
@@ -71,10 +101,17 @@ export default function TaskList({ tasks, categories, onToggle, onDelete, onReor
         <div className="list-toolbar">
           <button
             type="button"
-            className="sync-link-button"
-            onClick={() => setSortMode(sortMode === 'category' ? 'manual' : 'category')}
+            className={`sync-link-button${sortMode === 'category' ? ' is-active' : ''}`}
+            onClick={() => toggleSort('category')}
           >
-            {sortMode === 'category' ? '↩ Back to manual order' : 'Sort by category'}
+            {sortMode === 'category' ? '↩ Manual order' : 'Sort by category'}
+          </button>
+          <button
+            type="button"
+            className={`sync-link-button${sortMode === 'dueDate' ? ' is-active' : ''}`}
+            onClick={() => toggleSort('dueDate')}
+          >
+            {sortMode === 'dueDate' ? '↩ Manual order' : 'Sort by due date'}
           </button>
         </div>
       )}
