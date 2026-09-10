@@ -2,7 +2,12 @@ export const INTERVALS = [
   { value: 'daily', label: 'Daily' },
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly', label: 'Yearly' },
+  { value: 'yearly', label: 'Annual' },
+];
+
+export const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
 export const WEEKDAY_NAMES = [
@@ -54,14 +59,19 @@ function daysInMonth(year, monthIndex) {
   return new Date(year, monthIndex + 1, 0).getDate();
 }
 
-// Moves a date forward by one cycle of `interval`. For weekly/monthly, `meta`
-// pins the cycle to a specific weekday or day-of-month rather than drifting
-// with whatever day the task happened to start on:
+// Moves a date forward by one cycle of `interval`. For weekly/monthly/
+// yearly, `meta` pins the cycle to a specific weekday, day-of-month, or
+// month-and-day rather than drifting with whatever day the task happened to
+// start on:
 // - weekly: adding 7 days always lands back on the same weekday on its own,
 //   so no extra alignment is needed here once the starting date is right.
 // - monthly: naively adding a month (via setMonth) overflows for a day that
 //   doesn't exist in the next month (Jan 31 -> "Mar 3"). This clamps to the
 //   target day-of-month, or the last day of the month if it's shorter.
+// - yearly: naively adding a year has the same overflow risk for Feb 29 in a
+//   non-leap year. Clamps the same way, and always uses the chosen
+//   month-of-year/day-of-month rather than whatever month/day the task's
+//   current due date happens to be.
 function advanceOnce(date, interval, meta = {}) {
   const d = new Date(date);
   switch (interval) {
@@ -78,9 +88,13 @@ function advanceOnce(date, interval, meta = {}) {
       const clampedDay = Math.min(dayOfMonth, daysInMonth(year, nextMonthIndex));
       return new Date(year, nextMonthIndex, clampedDay);
     }
-    case 'yearly':
-      d.setFullYear(d.getFullYear() + 1);
-      return d;
+    case 'yearly': {
+      const monthOfYear = meta.monthOfYear ?? d.getMonth();
+      const dayOfMonth = meta.dayOfMonth ?? d.getDate();
+      const nextYear = d.getFullYear() + 1;
+      const clampedDay = Math.min(dayOfMonth, daysInMonth(nextYear, monthOfYear));
+      return new Date(nextYear, monthOfYear, clampedDay);
+    }
     default:
       return d;
   }
@@ -108,6 +122,20 @@ function alignToDayOfMonth(date, dayOfMonth) {
   return candidate;
 }
 
+// The next date on/after `date` that falls on the given month+day-of-month
+// (e.g. "March 15"), clamped for Feb 29 in a non-leap year. Picks this year
+// if that date hasn't passed yet, otherwise next year.
+function alignToMonthDay(date, monthOfYear, dayOfMonth) {
+  const d = startOfDay(new Date(date));
+  const year = d.getFullYear();
+  let candidate = new Date(year, monthOfYear, Math.min(dayOfMonth, daysInMonth(year, monthOfYear)));
+  if (candidate < d) {
+    const nextYear = year + 1;
+    candidate = new Date(nextYear, monthOfYear, Math.min(dayOfMonth, daysInMonth(nextYear, monthOfYear)));
+  }
+  return candidate;
+}
+
 export function toISODate(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -117,8 +145,8 @@ export function toISODate(date) {
 
 // Given the task's current due date (may be null or overdue) and its
 // recurrence interval, return the ISO date of the next occurrence strictly
-// after today. `meta.dayOfWeek`/`meta.dayOfMonth` keep weekly/monthly tasks
-// pinned to the chosen day rather than drifting.
+// after today. `meta.dayOfWeek`/`meta.dayOfMonth`/`meta.monthOfYear` keep
+// weekly/monthly/yearly tasks pinned to the chosen day rather than drifting.
 export function getNextOccurrence(currentDueDateISO, interval, meta = {}) {
   const today = startOfDay(new Date());
   const base = currentDueDateISO ? startOfDay(new Date(`${currentDueDateISO}T00:00:00`)) : today;
@@ -133,8 +161,8 @@ export function getNextOccurrence(currentDueDateISO, interval, meta = {}) {
 }
 
 // The due date a brand-new (or just-reconfigured) recurring task should
-// start on - the next occurrence of its chosen weekday/day-of-month,
-// counting today if today already matches.
+// start on - the next occurrence of its chosen weekday/day-of-month/
+// month-and-day, counting today if today already matches.
 export function initialOccurrence(interval, meta = {}) {
   const today = startOfDay(new Date());
   if (interval === 'weekly' && typeof meta.dayOfWeek === 'number') {
@@ -142,6 +170,9 @@ export function initialOccurrence(interval, meta = {}) {
   }
   if (interval === 'monthly' && typeof meta.dayOfMonth === 'number') {
     return toISODate(alignToDayOfMonth(today, meta.dayOfMonth));
+  }
+  if (interval === 'yearly' && typeof meta.monthOfYear === 'number' && typeof meta.dayOfMonth === 'number') {
+    return toISODate(alignToMonthDay(today, meta.monthOfYear, meta.dayOfMonth));
   }
   return toISODate(today);
 }

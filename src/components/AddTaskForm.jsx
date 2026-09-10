@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { INTERVALS, WEEKDAY_NAMES, DAYS_OF_MONTH, DEFAULT_TIME_OF_DAY } from '../utils/recurrence';
+import {
+  INTERVALS,
+  WEEKDAY_NAMES,
+  DAYS_OF_MONTH,
+  MONTH_NAMES,
+  DEFAULT_TIME_OF_DAY,
+} from '../utils/recurrence';
 import { CATEGORY_COLORS } from '../utils/categoryColors';
 import CategoryManager from './CategoryManager';
 import TimeOfDaySelects from './TimeOfDaySelects';
@@ -22,6 +28,7 @@ export default function AddTaskForm({
   const [timeOfDay, setTimeOfDay] = useState(DEFAULT_TIME_OF_DAY);
   const [dayOfWeek, setDayOfWeek] = useState(today.getDay());
   const [dayOfMonth, setDayOfMonth] = useState(today.getDate());
+  const [monthOfYear, setMonthOfYear] = useState(today.getMonth());
   const [categoryId, setCategoryId] = useState('');
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -42,6 +49,7 @@ export default function AddTaskForm({
       interval,
       dayOfWeek,
       dayOfMonth,
+      monthOfYear,
       timeOfDay,
       categoryId: categoryId || null,
       note: hasNote && note.trim() ? note.trim() : null,
@@ -55,6 +63,7 @@ export default function AddTaskForm({
     setTimeOfDay(DEFAULT_TIME_OF_DAY);
     setDayOfWeek(today.getDay());
     setDayOfMonth(today.getDate());
+    setMonthOfYear(today.getMonth());
     setCategoryId('');
     setCreatingCategory(false);
     setNewCategoryName('');
@@ -123,13 +132,6 @@ export default function AddTaskForm({
               ))}
             </select>
 
-            {interval === 'daily' && (
-              <TimeOfDaySelects
-                timeOfDay={timeOfDay}
-                onChange={setTimeOfDay}
-                labelPrefix="Time of day"
-              />
-            )}
             {interval === 'weekly' && (
               <select
                 value={dayOfWeek}
@@ -158,6 +160,40 @@ export default function AddTaskForm({
                 ))}
               </select>
             )}
+            {interval === 'yearly' && (
+              <>
+                <select
+                  value={monthOfYear}
+                  onChange={(e) => setMonthOfYear(Number(e.target.value))}
+                  className="add-task-interval"
+                  aria-label="Month"
+                >
+                  {MONTH_NAMES.map((name, i) => (
+                    <option key={name} value={i}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={dayOfMonth}
+                  onChange={(e) => setDayOfMonth(Number(e.target.value))}
+                  className="add-task-interval"
+                  aria-label="Day of the month"
+                >
+                  {DAYS_OF_MONTH.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            <TimeOfDaySelects
+              timeOfDay={timeOfDay}
+              onChange={setTimeOfDay}
+              labelPrefix="Time of day"
+            />
           </>
         )}
 

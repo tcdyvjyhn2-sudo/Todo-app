@@ -336,7 +336,18 @@ export function useTasks() {
   }, [applyState]);
 
   const addTask = useCallback(
-    ({ title, dueDate, recurring, interval, dayOfWeek, dayOfMonth, timeOfDay, categoryId, note }) => {
+    ({
+      title,
+      dueDate,
+      recurring,
+      interval,
+      dayOfWeek,
+      dayOfMonth,
+      monthOfYear,
+      timeOfDay,
+      categoryId,
+      note,
+    }) => {
       applyTasks((prev) => [
         ...prev,
         {
@@ -346,13 +357,14 @@ export function useTasks() {
           // month/interval, not the manual due-date field (that's for
           // one-off tasks only).
           dueDate: recurring
-            ? initialOccurrence(interval, { dayOfWeek, dayOfMonth })
+            ? initialOccurrence(interval, { dayOfWeek, dayOfMonth, monthOfYear })
             : dueDate || null,
           recurring,
           interval: recurring ? interval : null,
           dayOfWeek: recurring && interval === 'weekly' ? dayOfWeek : null,
-          dayOfMonth: recurring && interval === 'monthly' ? dayOfMonth : null,
-          timeOfDay: recurring && interval === 'daily' ? timeOfDay || null : null,
+          dayOfMonth: recurring && (interval === 'monthly' || interval === 'yearly') ? dayOfMonth : null,
+          monthOfYear: recurring && interval === 'yearly' ? monthOfYear : null,
+          timeOfDay: recurring ? timeOfDay || null : null,
           categoryId: categoryId || null,
           note: note || null,
           completed: false,
@@ -383,6 +395,7 @@ export function useTasks() {
               dueDate: getNextOccurrence(t.dueDate, t.interval, {
                 dayOfWeek: t.dayOfWeek,
                 dayOfMonth: t.dayOfMonth,
+                monthOfYear: t.monthOfYear,
               }),
               lastCompletedAt: new Date().toISOString(),
             };

@@ -522,6 +522,17 @@
   outline-offset: 1px;
 }
 
+.time-edit-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.time-edit-done {
+  font-size: 11px;
+  padding: 1px 6px;
+}
+
 /* iOS Safari zooms the whole page in when a tapped form control's font-size
    is under 16px. These all render smaller than that inside their compact
    rows, so bump them back up just below phone-sized viewports - staying
