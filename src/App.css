@@ -1,5 +1,11 @@
 .app {
-  max-width: 640px;
+  /* Wide enough that a task with a category, a recurrence badge, a
+     day-of-week/month selector, and a full "Weekday, D Mon YYYY" due date
+     fits on one line on a typical desktop window, rather than wrapping to a
+     second line. Only helps when the browser window is wider than this -
+     on an iPhone the physical screen is the actual limit, and wrapping
+     there can't be fixed by raising this number. */
+  max-width: 760px;
   margin: 0 auto;
   padding: 48px 20px 80px;
 }
