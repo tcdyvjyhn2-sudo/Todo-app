@@ -408,6 +408,27 @@ export function useTasks() {
     [applyState]
   );
 
+  const updateCategory = useCallback(
+    (id, changes) => {
+      applyState((prev) => ({
+        ...prev,
+        categories: prev.categories.map((c) => (c.id === id ? { ...c, ...changes } : c)),
+      }));
+    },
+    [applyState]
+  );
+
+  // Un-tags any tasks using this category rather than leaving a dangling id.
+  const deleteCategory = useCallback(
+    (id) => {
+      applyState((prev) => ({
+        tasks: prev.tasks.map((t) => (t.categoryId === id ? { ...t, categoryId: null } : t)),
+        categories: prev.categories.filter((c) => c.id !== id),
+      }));
+    },
+    [applyState]
+  );
+
   const saveDropboxAppKey = useCallback((appKey) => {
     setStoredAppKey(appKey);
     setDropboxAppKey(appKey);
@@ -431,6 +452,8 @@ export function useTasks() {
     categories: state.categories,
     addTask,
     addCategory,
+    updateCategory,
+    deleteCategory,
     deleteTask,
     toggleComplete,
     updateTask,

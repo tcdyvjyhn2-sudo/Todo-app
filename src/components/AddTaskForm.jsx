@@ -1,11 +1,19 @@
 import { useState } from 'react';
 import { INTERVALS } from '../utils/recurrence';
 import { CATEGORY_COLORS } from '../utils/categoryColors';
+import CategoryManager from './CategoryManager';
 
 const NEW_CATEGORY_VALUE = '__new__';
 
-export default function AddTaskForm({ onAdd, categories, onCreateCategory }) {
+export default function AddTaskForm({
+  onAdd,
+  categories,
+  onCreateCategory,
+  onUpdateCategory,
+  onDeleteCategory,
+}) {
   const [title, setTitle] = useState('');
+  const [hasDueDate, setHasDueDate] = useState(false);
   const [dueDate, setDueDate] = useState('');
   const [recurring, setRecurring] = useState(false);
   const [interval, setInterval] = useState('daily');
@@ -13,6 +21,7 @@ export default function AddTaskForm({ onAdd, categories, onCreateCategory }) {
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState(CATEGORY_COLORS[0].value);
+  const [managingCategories, setManagingCategories] = useState(false);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -21,13 +30,14 @@ export default function AddTaskForm({ onAdd, categories, onCreateCategory }) {
 
     onAdd({
       title: trimmed,
-      dueDate: dueDate || null,
+      dueDate: hasDueDate && dueDate ? dueDate : null,
       recurring,
       interval,
       categoryId: categoryId || null,
     });
 
     setTitle('');
+    setHasDueDate(false);
     setDueDate('');
     setRecurring(false);
     setInterval('daily');
@@ -96,8 +106,16 @@ export default function AddTaskForm({ onAdd, categories, onCreateCategory }) {
             ))}
           </select>
         )}
-        <label className="field-label">
+
+        <label className="add-task-recurring add-task-due-toggle">
+          <input
+            type="checkbox"
+            checked={hasDueDate}
+            onChange={(e) => setHasDueDate(e.target.checked)}
+          />
           Due
+        </label>
+        {hasDueDate && (
           <input
             type="date"
             value={dueDate}
@@ -105,7 +123,7 @@ export default function AddTaskForm({ onAdd, categories, onCreateCategory }) {
             className="add-task-date"
             aria-label="Due date"
           />
-        </label>
+        )}
       </div>
 
       <div className="add-task-row add-task-options">
@@ -126,6 +144,15 @@ export default function AddTaskForm({ onAdd, categories, onCreateCategory }) {
             <option value={NEW_CATEGORY_VALUE}>+ New category…</option>
           </select>
         </label>
+        {categories.length > 0 && (
+          <button
+            type="button"
+            className="sync-link-button"
+            onClick={() => setManagingCategories(!managingCategories)}
+          >
+            {managingCategories ? 'Done' : 'Manage categories'}
+          </button>
+        )}
       </div>
 
       {creatingCategory && (
@@ -169,6 +196,14 @@ export default function AddTaskForm({ onAdd, categories, onCreateCategory }) {
             Cancel
           </button>
         </div>
+      )}
+
+      {managingCategories && (
+        <CategoryManager
+          categories={categories}
+          onUpdateCategory={onUpdateCategory}
+          onDeleteCategory={onDeleteCategory}
+        />
       )}
     </form>
   );

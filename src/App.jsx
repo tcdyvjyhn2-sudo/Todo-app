@@ -5,8 +5,19 @@ import SyncPanel from './components/SyncPanel';
 import './App.css';
 
 export default function App() {
-  const { tasks, categories, addTask, addCategory, deleteTask, toggleComplete, reorderTasks, sync } =
-    useTasks();
+  const {
+    tasks,
+    categories,
+    addTask,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    updateTask,
+    deleteTask,
+    toggleComplete,
+    reorderTasks,
+    sync,
+  } = useTasks();
 
   return (
     <div className="app">
@@ -21,7 +32,13 @@ export default function App() {
 
       <SyncPanel sync={sync} />
 
-      <AddTaskForm onAdd={addTask} categories={categories} onCreateCategory={addCategory} />
+      <AddTaskForm
+        onAdd={addTask}
+        categories={categories}
+        onCreateCategory={addCategory}
+        onUpdateCategory={updateCategory}
+        onDeleteCategory={deleteCategory}
+      />
 
       <TaskList
         tasks={tasks}
@@ -29,6 +46,7 @@ export default function App() {
         onToggle={toggleComplete}
         onDelete={deleteTask}
         onReorder={reorderTasks}
+        onUpdateTask={updateTask}
       />
     </div>
   );

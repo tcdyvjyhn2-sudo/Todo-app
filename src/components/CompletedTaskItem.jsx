@@ -1,8 +1,19 @@
 import TaskBadges from './TaskBadges';
+import { categoryColorHex } from '../utils/categoryColors';
 
-export default function CompletedTaskItem({ task, categories, onToggle, onDelete }) {
+export default function CompletedTaskItem({ task, categories, onToggle, onDelete, onUpdateTask }) {
+  const category = categories?.find((c) => c.id === task.categoryId);
+  const hex = category ? categoryColorHex(category.color) : null;
+
+  const style = hex
+    ? {
+        borderLeft: `4px solid ${hex}`,
+        background: `color-mix(in srgb, ${hex} 6%, var(--surface))`,
+      }
+    : undefined;
+
   return (
-    <li className="task-item is-completed">
+    <li className="task-item is-completed" style={style}>
       <input
         type="checkbox"
         checked
@@ -13,7 +24,7 @@ export default function CompletedTaskItem({ task, categories, onToggle, onDelete
 
       <div className="task-body">
         <span className="task-title">{task.title}</span>
-        <TaskBadges task={task} categories={categories} />
+        <TaskBadges task={task} categories={categories} onUpdateTask={onUpdateTask} />
       </div>
 
       <button
