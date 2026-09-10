@@ -17,6 +17,10 @@ export const WEEKDAY_NAMES = [
 
 export const DAYS_OF_MONTH = Array.from({ length: 31 }, (_, i) => i + 1);
 
+export const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12
+export const MINUTES_5 = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
+export const DEFAULT_TIME_OF_DAY = '12:00'; // noon, 24-hour storage format
+
 const MONTH_ABBR = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
@@ -142,26 +146,45 @@ export function initialOccurrence(interval, meta = {}) {
   return toISODate(today);
 }
 
-// "HH:MM" (24-hour, as a native <input type="time"> stores it) -> "8:00 AM".
-export function formatTimeOfDay(timeOfDay) {
-  if (!timeOfDay) return '';
-  const [hourStr, minute] = timeOfDay.split(':');
+// "HH:MM" (24-hour storage format) -> {hour12, minute, period}, for
+// populating the hour/minute/AM-PM selects from a stored time.
+export function to12Hour(timeOfDay) {
+  const [hourStr, minute] = (timeOfDay || DEFAULT_TIME_OF_DAY).split(':');
   const hour = Number(hourStr);
   const period = hour >= 12 ? 'PM' : 'AM';
   const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return { hour12, minute, period };
+}
+
+// {hour12, minute, period} -> "HH:MM" (24-hour storage format).
+export function from12Hour(hour12, minute, period) {
+  let hour = Number(hour12) % 12;
+  if (period === 'PM') hour += 12;
+  return `${String(hour).padStart(2, '0')}:${minute}`;
+}
+
+// "HH:MM" (24-hour storage format) -> "8:00 AM".
+export function formatTimeOfDay(timeOfDay) {
+  if (!timeOfDay) return '';
+  const { hour12, minute, period } = to12Hour(timeOfDay);
   return `${hour12}:${minute} ${period}`;
 }
 
-// "Monday, 15 Sep 2026", with an optional time appended for daily tasks that
-// have one ("Monday, 15 Sep 2026, 8:00 AM").
+// "15 Sep 2026", or "Tomorrow" when the date is exactly one day from today -
+// either way with an optional time appended for tasks that have one
+// ("Tomorrow, 12:00 PM"). The weekday name is left out: for weekly tasks
+// it's redundant with the day-of-week selector shown right next to it, and
+// dropping it keeps every other due date the same length.
 export function formatDueDate(dueDateISO, timeOfDay) {
   if (!dueDateISO) return '';
   const date = new Date(`${dueDateISO}T00:00:00`);
-  const weekday = WEEKDAY_NAMES[date.getDay()];
+  const today = startOfDay(new Date());
+  const diffDays = Math.round((startOfDay(date) - today) / 86400000);
+
   const day = date.getDate();
   const month = MONTH_ABBR[date.getMonth()];
   const year = date.getFullYear();
-  const base = `${weekday}, ${day} ${month} ${year}`;
+  const base = diffDays === 1 ? 'Tomorrow' : `${day} ${month} ${year}`;
   return timeOfDay ? `${base}, ${formatTimeOfDay(timeOfDay)}` : base;
 }
 

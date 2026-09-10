@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { INTERVALS, WEEKDAY_NAMES, DAYS_OF_MONTH } from '../utils/recurrence';
+import { INTERVALS, WEEKDAY_NAMES, DAYS_OF_MONTH, DEFAULT_TIME_OF_DAY } from '../utils/recurrence';
 import { CATEGORY_COLORS } from '../utils/categoryColors';
 import CategoryManager from './CategoryManager';
+import TimeOfDaySelects from './TimeOfDaySelects';
 
 const NEW_CATEGORY_VALUE = '__new__';
 
@@ -18,7 +19,7 @@ export default function AddTaskForm({
   const [dueDate, setDueDate] = useState('');
   const [recurring, setRecurring] = useState(false);
   const [interval, setInterval] = useState('daily');
-  const [timeOfDay, setTimeOfDay] = useState('');
+  const [timeOfDay, setTimeOfDay] = useState(DEFAULT_TIME_OF_DAY);
   const [dayOfWeek, setDayOfWeek] = useState(today.getDay());
   const [dayOfMonth, setDayOfMonth] = useState(today.getDate());
   const [categoryId, setCategoryId] = useState('');
@@ -51,7 +52,7 @@ export default function AddTaskForm({
     setDueDate('');
     setRecurring(false);
     setInterval('daily');
-    setTimeOfDay('');
+    setTimeOfDay(DEFAULT_TIME_OF_DAY);
     setDayOfWeek(today.getDay());
     setDayOfMonth(today.getDate());
     setCategoryId('');
@@ -123,12 +124,10 @@ export default function AddTaskForm({
             </select>
 
             {interval === 'daily' && (
-              <input
-                type="time"
-                value={timeOfDay}
-                onChange={(e) => setTimeOfDay(e.target.value)}
-                className="add-task-date"
-                aria-label="Time of day"
+              <TimeOfDaySelects
+                timeOfDay={timeOfDay}
+                onChange={setTimeOfDay}
+                labelPrefix="Time of day"
               />
             )}
             {interval === 'weekly' && (

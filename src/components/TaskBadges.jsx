@@ -2,6 +2,7 @@ import {
   INTERVALS,
   WEEKDAY_NAMES,
   DAYS_OF_MONTH,
+  DEFAULT_TIME_OF_DAY,
   intervalColor,
   formatDueDate,
   isOverdue,
@@ -9,6 +10,7 @@ import {
 } from '../utils/recurrence';
 import { categoryColorHex } from '../utils/categoryColors';
 import EditableNote from './EditableNote';
+import TimeOfDaySelects from './TimeOfDaySelects';
 
 const NO_CATEGORY = '';
 const NOT_RECURRING = 'none';
@@ -48,7 +50,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
       interval: value,
       dayOfWeek,
       dayOfMonth,
-      timeOfDay: value === 'daily' ? (task.timeOfDay ?? null) : null,
+      timeOfDay: value === 'daily' ? (task.timeOfDay ?? DEFAULT_TIME_OF_DAY) : null,
       dueDate: initialOccurrence(value, { dayOfWeek, dayOfMonth }),
     });
   }
@@ -63,8 +65,8 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
     onUpdateTask(task.id, { dayOfMonth, dueDate: initialOccurrence('monthly', { dayOfMonth }) });
   }
 
-  function handleTimeOfDayChange(e) {
-    onUpdateTask(task.id, { timeOfDay: e.target.value || null });
+  function handleTimeOfDayChange(nextTimeOfDay) {
+    onUpdateTask(task.id, { timeOfDay: nextTimeOfDay });
   }
 
   return (
@@ -101,13 +103,12 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
         </select>
 
         {task.recurring && task.interval === 'daily' && (
-          <input
-            type="time"
-            className="badge-select badge-time"
-            style={{ background: intervalTint }}
-            value={task.timeOfDay ?? ''}
+          <TimeOfDaySelects
+            timeOfDay={task.timeOfDay}
             onChange={handleTimeOfDayChange}
-            aria-label={`Time of day for "${task.title}"`}
+            labelPrefix={`Time of day for "${task.title}"`}
+            className="badge badge-select"
+            style={{ background: intervalTint }}
           />
         )}
         {task.recurring && task.interval === 'weekly' && (
