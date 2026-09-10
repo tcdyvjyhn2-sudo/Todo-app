@@ -5,8 +5,9 @@ import {
   DAYS_OF_MONTH,
   MONTH_NAMES,
   DEFAULT_TIME_OF_DAY,
+  intervalIcon,
 } from '../utils/recurrence';
-import { CATEGORY_COLORS } from '../utils/categoryColors';
+import { CATEGORY_COLORS, categoryColorHex } from '../utils/categoryColors';
 import CategoryManager from './CategoryManager';
 import TimeOfDaySelects from './TimeOfDaySelects';
 
@@ -127,7 +128,7 @@ export default function AddTaskForm({
             >
               {INTERVALS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {intervalIcon(opt.value)} {opt.label}
                 </option>
               ))}
             </select>
@@ -296,6 +297,14 @@ export default function AddTaskForm({
               />
             ))}
           </div>
+          <span
+            className="badge category-preview-badge"
+            style={{
+              background: `color-mix(in srgb, ${categoryColorHex(newCategoryColor)} 28%, var(--surface))`,
+            }}
+          >
+            {newCategoryName.trim() || 'Category'}
+          </span>
           <button
             type="button"
             className="sync-link-button sync-link-button-primary"

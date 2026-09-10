@@ -3,6 +3,7 @@ import { CSS } from '@dnd-kit/utilities';
 import TaskBadges from './TaskBadges';
 import EditableTaskTitle from './EditableTaskTitle';
 import { categoryColorHex } from '../utils/categoryColors';
+import { isOverdue } from '../utils/recurrence';
 
 export default function TaskItem({ task, categories, dragDisabled, onToggle, onDelete, onUpdateTask }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -12,6 +13,7 @@ export default function TaskItem({ task, categories, dragDisabled, onToggle, onD
 
   const category = categories?.find((c) => c.id === task.categoryId);
   const hex = category ? categoryColorHex(category.color) : null;
+  const overdue = isOverdue(task.dueDate);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -27,7 +29,7 @@ export default function TaskItem({ task, categories, dragDisabled, onToggle, onD
     <li
       ref={setNodeRef}
       style={style}
-      className={`task-item${isDragging ? ' is-dragging' : ''}`}
+      className={`task-item${isDragging ? ' is-dragging' : ''}${overdue ? ' is-overdue' : ''}`}
     >
       <input
         type="checkbox"

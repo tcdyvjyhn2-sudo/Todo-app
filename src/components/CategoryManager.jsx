@@ -57,6 +57,14 @@ export default function CategoryManager({ categories, onUpdateCategory, onDelete
                   }}
                 />
               ))}
+              <span
+                className="badge category-preview-badge"
+                style={{
+                  background: `color-mix(in srgb, ${categoryColorHex(c.color)} 28%, var(--surface))`,
+                }}
+              >
+                {c.name}
+              </span>
             </div>
           )}
         </li>

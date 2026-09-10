@@ -35,6 +35,20 @@ export function intervalLabel(interval) {
   return INTERVALS.find((i) => i.value === interval)?.label ?? interval;
 }
 
+// A colored-circle marker per recurrence so daily/weekly/monthly/annual
+// tasks stay tellable apart at a glance in the recurrence picker, now that
+// the picker's background color reflects the task's category instead.
+const INTERVAL_ICONS = {
+  daily: '🔵',
+  weekly: '🟣',
+  monthly: '🟢',
+  yearly: '🟡',
+};
+
+export function intervalIcon(interval) {
+  return INTERVAL_ICONS[interval] ?? '⚪';
+}
+
 function startOfDay(date) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);

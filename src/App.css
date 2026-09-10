@@ -262,6 +262,7 @@
 
 .color-swatches {
   display: flex;
+  align-items: center;
   gap: 6px;
 }
 
@@ -277,6 +278,14 @@
 .color-swatch.is-selected {
   border-color: var(--text-h);
   box-shadow: 0 0 0 2px var(--surface);
+}
+
+/* Shows the muted, mixed-with-surface tint a category's badges will
+   actually use on a task row - the swatches themselves stay fully
+   saturated so they're easy to tell apart while picking. */
+.category-preview-badge {
+  margin-left: 4px;
+  font-weight: 500;
 }
 
 /* Category manager */
@@ -379,6 +388,13 @@
 
 .task-item.is-dragging {
   box-shadow: var(--shadow-md);
+}
+
+/* An inset ring rather than reusing the category border-left/background -
+   overdue and category are separate signals, so overdue tasks still show
+   which category they belong to. */
+.task-item.is-overdue {
+  box-shadow: var(--shadow-sm), inset 0 0 0 1.5px var(--danger);
 }
 
 .task-checkbox {

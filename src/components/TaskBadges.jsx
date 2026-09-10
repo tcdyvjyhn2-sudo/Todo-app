@@ -7,6 +7,7 @@ import {
   formatDueDate,
   isOverdue,
   initialOccurrence,
+  intervalIcon,
 } from '../utils/recurrence';
 import { categoryColorHex } from '../utils/categoryColors';
 import EditableNote from './EditableNote';
@@ -113,7 +114,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
           <option value={NOT_RECURRING}>One-time</option>
           {INTERVALS.map((opt) => (
             <option key={opt.value} value={opt.value}>
-              ↻ {opt.label}
+              {intervalIcon(opt.value)} {opt.label}
             </option>
           ))}
         </select>
