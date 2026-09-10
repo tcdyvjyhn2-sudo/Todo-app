@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { INTERVALS } from '../utils/recurrence';
+import { INTERVALS, WEEKDAY_NAMES, DAYS_OF_MONTH } from '../utils/recurrence';
 import { CATEGORY_COLORS } from '../utils/categoryColors';
 import CategoryManager from './CategoryManager';
 
@@ -12,16 +12,22 @@ export default function AddTaskForm({
   onUpdateCategory,
   onDeleteCategory,
 }) {
+  const today = new Date();
   const [title, setTitle] = useState('');
   const [hasDueDate, setHasDueDate] = useState(false);
   const [dueDate, setDueDate] = useState('');
   const [recurring, setRecurring] = useState(false);
   const [interval, setInterval] = useState('daily');
+  const [timeOfDay, setTimeOfDay] = useState('');
+  const [dayOfWeek, setDayOfWeek] = useState(today.getDay());
+  const [dayOfMonth, setDayOfMonth] = useState(today.getDate());
   const [categoryId, setCategoryId] = useState('');
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState(CATEGORY_COLORS[0].value);
   const [managingCategories, setManagingCategories] = useState(false);
+  const [hasNote, setHasNote] = useState(false);
+  const [note, setNote] = useState('');
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -33,7 +39,11 @@ export default function AddTaskForm({
       dueDate: hasDueDate && dueDate ? dueDate : null,
       recurring,
       interval,
+      dayOfWeek,
+      dayOfMonth,
+      timeOfDay,
       categoryId: categoryId || null,
+      note: hasNote && note.trim() ? note.trim() : null,
     });
 
     setTitle('');
@@ -41,9 +51,14 @@ export default function AddTaskForm({
     setDueDate('');
     setRecurring(false);
     setInterval('daily');
+    setTimeOfDay('');
+    setDayOfWeek(today.getDay());
+    setDayOfMonth(today.getDate());
     setCategoryId('');
     setCreatingCategory(false);
     setNewCategoryName('');
+    setHasNote(false);
+    setNote('');
   }
 
   function handleCategoryChange(e) {
@@ -93,36 +108,80 @@ export default function AddTaskForm({
           Recurring
         </label>
         {recurring && (
-          <select
-            value={interval}
-            onChange={(e) => setInterval(e.target.value)}
-            className="add-task-interval"
-            aria-label="Recurrence interval"
-          >
-            {INTERVALS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <>
+            <select
+              value={interval}
+              onChange={(e) => setInterval(e.target.value)}
+              className="add-task-interval"
+              aria-label="Recurrence interval"
+            >
+              {INTERVALS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            {interval === 'daily' && (
+              <input
+                type="time"
+                value={timeOfDay}
+                onChange={(e) => setTimeOfDay(e.target.value)}
+                className="add-task-date"
+                aria-label="Time of day"
+              />
+            )}
+            {interval === 'weekly' && (
+              <select
+                value={dayOfWeek}
+                onChange={(e) => setDayOfWeek(Number(e.target.value))}
+                className="add-task-interval"
+                aria-label="Day of the week"
+              >
+                {WEEKDAY_NAMES.map((name, i) => (
+                  <option key={name} value={i}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {interval === 'monthly' && (
+              <select
+                value={dayOfMonth}
+                onChange={(e) => setDayOfMonth(Number(e.target.value))}
+                className="add-task-interval"
+                aria-label="Day of the month"
+              >
+                {DAYS_OF_MONTH.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            )}
+          </>
         )}
 
-        <label className="add-task-recurring add-task-due-toggle">
-          <input
-            type="checkbox"
-            checked={hasDueDate}
-            onChange={(e) => setHasDueDate(e.target.checked)}
-          />
-          Due
-        </label>
-        {hasDueDate && (
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="add-task-date"
-            aria-label="Due date"
-          />
+        {!recurring && (
+          <>
+            <label className="add-task-recurring add-task-due-toggle">
+              <input
+                type="checkbox"
+                checked={hasDueDate}
+                onChange={(e) => setHasDueDate(e.target.checked)}
+              />
+              Due
+            </label>
+            {hasDueDate && (
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="add-task-date"
+                aria-label="Due date"
+              />
+            )}
+          </>
         )}
       </div>
 
@@ -153,7 +212,29 @@ export default function AddTaskForm({
             {managingCategories ? 'Done' : 'Manage categories'}
           </button>
         )}
+
+        <label className="add-task-recurring add-task-note-toggle">
+          <input
+            type="checkbox"
+            checked={hasNote}
+            onChange={(e) => setHasNote(e.target.checked)}
+          />
+          Note
+        </label>
       </div>
+
+      {hasNote && (
+        <div className="add-task-row">
+          <textarea
+            placeholder="Add a note…"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            className="add-task-note"
+            aria-label="Task note"
+            rows={2}
+          />
+        </div>
+      )}
 
       {creatingCategory && (
         <div className="add-task-row new-category-row">

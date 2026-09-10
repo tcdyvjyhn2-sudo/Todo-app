@@ -1,5 +1,14 @@
-import { INTERVALS, intervalColor, formatDueDate, isOverdue, getNextOccurrence } from '../utils/recurrence';
+import {
+  INTERVALS,
+  WEEKDAY_NAMES,
+  DAYS_OF_MONTH,
+  intervalColor,
+  formatDueDate,
+  isOverdue,
+  initialOccurrence,
+} from '../utils/recurrence';
 import { categoryColorHex } from '../utils/categoryColors';
+import EditableNote from './EditableNote';
 
 const NO_CATEGORY = '';
 const NOT_RECURRING = 'none';
@@ -22,53 +31,124 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
   function handleIntervalChange(e) {
     const value = e.target.value;
     if (value === NOT_RECURRING) {
-      onUpdateTask(task.id, { recurring: false, interval: null });
+      onUpdateTask(task.id, {
+        recurring: false,
+        interval: null,
+        dayOfWeek: null,
+        dayOfMonth: null,
+        timeOfDay: null,
+      });
       return;
     }
+    const today = new Date();
+    const dayOfWeek = value === 'weekly' ? (task.dayOfWeek ?? today.getDay()) : null;
+    const dayOfMonth = value === 'monthly' ? (task.dayOfMonth ?? today.getDate()) : null;
     onUpdateTask(task.id, {
       recurring: true,
       interval: value,
-      dueDate: task.recurring ? task.dueDate : getNextOccurrence(task.dueDate, value),
+      dayOfWeek,
+      dayOfMonth,
+      timeOfDay: value === 'daily' ? (task.timeOfDay ?? null) : null,
+      dueDate: initialOccurrence(value, { dayOfWeek, dayOfMonth }),
     });
   }
 
+  function handleDayOfWeekChange(e) {
+    const dayOfWeek = Number(e.target.value);
+    onUpdateTask(task.id, { dayOfWeek, dueDate: initialOccurrence('weekly', { dayOfWeek }) });
+  }
+
+  function handleDayOfMonthChange(e) {
+    const dayOfMonth = Number(e.target.value);
+    onUpdateTask(task.id, { dayOfMonth, dueDate: initialOccurrence('monthly', { dayOfMonth }) });
+  }
+
+  function handleTimeOfDayChange(e) {
+    onUpdateTask(task.id, { timeOfDay: e.target.value || null });
+  }
+
   return (
-    <span className="task-meta">
-      <select
-        className="badge badge-select"
-        style={{ background: categoryTint }}
-        value={task.categoryId ?? NO_CATEGORY}
-        onChange={handleCategoryChange}
-        aria-label={`Category for "${task.title}"`}
-      >
-        <option value={NO_CATEGORY}>No category</option>
-        {categories.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
+    <>
+      <span className="task-meta">
+        <select
+          className="badge badge-select"
+          style={{ background: categoryTint }}
+          value={task.categoryId ?? NO_CATEGORY}
+          onChange={handleCategoryChange}
+          aria-label={`Category for "${task.title}"`}
+        >
+          <option value={NO_CATEGORY}>No category</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
 
-      <select
-        className="badge badge-select"
-        style={{ background: intervalTint }}
-        value={task.recurring ? task.interval : NOT_RECURRING}
-        onChange={handleIntervalChange}
-        aria-label={`Recurrence for "${task.title}"`}
-      >
-        <option value={NOT_RECURRING}>One-time</option>
-        {INTERVALS.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            ↻ {opt.label}
-          </option>
-        ))}
-      </select>
+        <select
+          className="badge badge-select"
+          style={{ background: intervalTint }}
+          value={task.recurring ? task.interval : NOT_RECURRING}
+          onChange={handleIntervalChange}
+          aria-label={`Recurrence for "${task.title}"`}
+        >
+          <option value={NOT_RECURRING}>One-time</option>
+          {INTERVALS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              ↻ {opt.label}
+            </option>
+          ))}
+        </select>
 
-      {task.dueDate && (
-        <span className={`badge badge-due${overdue ? ' badge-overdue' : ''}`}>
-          {formatDueDate(task.dueDate)}
-        </span>
-      )}
-    </span>
+        {task.recurring && task.interval === 'daily' && (
+          <input
+            type="time"
+            className="badge-select badge-time"
+            style={{ background: intervalTint }}
+            value={task.timeOfDay ?? ''}
+            onChange={handleTimeOfDayChange}
+            aria-label={`Time of day for "${task.title}"`}
+          />
+        )}
+        {task.recurring && task.interval === 'weekly' && (
+          <select
+            className="badge badge-select"
+            style={{ background: intervalTint }}
+            value={task.dayOfWeek ?? 0}
+            onChange={handleDayOfWeekChange}
+            aria-label={`Day of the week for "${task.title}"`}
+          >
+            {WEEKDAY_NAMES.map((name, i) => (
+              <option key={name} value={i}>
+                {name}
+              </option>
+            ))}
+          </select>
+        )}
+        {task.recurring && task.interval === 'monthly' && (
+          <select
+            className="badge badge-select"
+            style={{ background: intervalTint }}
+            value={task.dayOfMonth ?? 1}
+            onChange={handleDayOfMonthChange}
+            aria-label={`Day of the month for "${task.title}"`}
+          >
+            {DAYS_OF_MONTH.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {task.dueDate && (
+          <span className={`badge badge-due${overdue ? ' badge-overdue' : ''}`}>
+            {formatDueDate(task.dueDate, task.timeOfDay)}
+          </span>
+        )}
+      </span>
+
+      {task.note && <EditableNote task={task} onUpdateTask={onUpdateTask} />}
+    </>
   );
 }

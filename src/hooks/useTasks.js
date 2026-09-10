@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
-import { getNextOccurrence, isDueOrPast, toISODate } from '../utils/recurrence';
+import { getNextOccurrence, initialOccurrence, isDueOrPast, toISODate } from '../utils/recurrence';
 import { beginAuthorize } from '../lib/dropboxAuth';
 import { downloadState, uploadState, DropboxAuthError } from '../lib/dropboxStore';
 import {
@@ -336,16 +336,25 @@ export function useTasks() {
   }, [applyState]);
 
   const addTask = useCallback(
-    ({ title, dueDate, recurring, interval, categoryId }) => {
+    ({ title, dueDate, recurring, interval, dayOfWeek, dayOfMonth, timeOfDay, categoryId, note }) => {
       applyTasks((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           title,
-          dueDate: dueDate || null,
+          // A recurring task's schedule comes from its own weekday/day-of-
+          // month/interval, not the manual due-date field (that's for
+          // one-off tasks only).
+          dueDate: recurring
+            ? initialOccurrence(interval, { dayOfWeek, dayOfMonth })
+            : dueDate || null,
           recurring,
           interval: recurring ? interval : null,
+          dayOfWeek: recurring && interval === 'weekly' ? dayOfWeek : null,
+          dayOfMonth: recurring && interval === 'monthly' ? dayOfMonth : null,
+          timeOfDay: recurring && interval === 'daily' ? timeOfDay || null : null,
           categoryId: categoryId || null,
+          note: note || null,
           completed: false,
           createdAt: new Date().toISOString(),
         },
@@ -371,7 +380,10 @@ export function useTasks() {
             return {
               ...t,
               completed: true,
-              dueDate: getNextOccurrence(t.dueDate, t.interval),
+              dueDate: getNextOccurrence(t.dueDate, t.interval, {
+                dayOfWeek: t.dayOfWeek,
+                dayOfMonth: t.dayOfMonth,
+              }),
               lastCompletedAt: new Date().toISOString(),
             };
           }
