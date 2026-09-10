@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 import { getNextOccurrence, isDueOrPast, toISODate } from '../utils/recurrence';
 import { beginAuthorize } from '../lib/dropboxAuth';
@@ -447,9 +447,20 @@ export function useTasks() {
     setSyncError('');
   }, []);
 
+  // Sorted for display only - categories are referenced by id, so this never
+  // affects which category a task has, only the order dropdowns and the
+  // manager list show them in.
+  const sortedCategories = useMemo(
+    () =>
+      [...state.categories].sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+      ),
+    [state.categories]
+  );
+
   return {
     tasks: state.tasks,
-    categories: state.categories,
+    categories: sortedCategories,
     addTask,
     addCategory,
     updateCategory,

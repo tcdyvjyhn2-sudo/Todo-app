@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TaskBadges from './TaskBadges';
+import EditableTaskTitle from './EditableTaskTitle';
 import { categoryColorHex } from '../utils/categoryColors';
 
 export default function TaskItem({ task, categories, dragDisabled, onToggle, onDelete, onUpdateTask }) {
@@ -37,7 +38,7 @@ export default function TaskItem({ task, categories, dragDisabled, onToggle, onD
       />
 
       <div className="task-body">
-        <span className="task-title">{task.title}</span>
+        <EditableTaskTitle task={task} onUpdateTask={onUpdateTask} />
         <TaskBadges task={task} categories={categories} onUpdateTask={onUpdateTask} />
       </div>
 

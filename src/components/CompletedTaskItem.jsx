@@ -1,4 +1,5 @@
 import TaskBadges from './TaskBadges';
+import EditableTaskTitle from './EditableTaskTitle';
 import { categoryColorHex } from '../utils/categoryColors';
 
 export default function CompletedTaskItem({ task, categories, onToggle, onDelete, onUpdateTask }) {
@@ -23,7 +24,7 @@ export default function CompletedTaskItem({ task, categories, onToggle, onDelete
       />
 
       <div className="task-body">
-        <span className="task-title">{task.title}</span>
+        <EditableTaskTitle task={task} onUpdateTask={onUpdateTask} />
         <TaskBadges task={task} categories={categories} onUpdateTask={onUpdateTask} />
       </div>
 
