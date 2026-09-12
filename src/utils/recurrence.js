@@ -20,6 +20,12 @@ export const WEEKDAY_NAMES = [
   'Saturday',
 ];
 
+// Shown instead of WEEKDAY_NAMES/MONTH_NAMES on phone-width screens, where a
+// native <select> renders as wide as its selected option's text - a picked
+// "Wednesday" or "September" pushes a task row into extra wrapped lines that
+// "Wed" or "Sep" doesn't.
+export const WEEKDAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 export const DAYS_OF_MONTH = Array.from({ length: 31 }, (_, i) => i + 1);
 
 export const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12
@@ -30,6 +36,8 @@ const MONTH_ABBR = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
+
+export const MONTH_ABBR_NAMES = MONTH_ABBR;
 
 export function intervalLabel(interval) {
   return INTERVALS.find((i) => i.value === interval)?.label ?? interval;

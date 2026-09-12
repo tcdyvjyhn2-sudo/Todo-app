@@ -2,12 +2,15 @@ import { useState } from 'react';
 import {
   INTERVALS,
   WEEKDAY_NAMES,
+  WEEKDAY_ABBR,
   DAYS_OF_MONTH,
   MONTH_NAMES,
+  MONTH_ABBR_NAMES,
   DEFAULT_TIME_OF_DAY,
   intervalIcon,
 } from '../utils/recurrence';
 import { CATEGORY_COLORS, categoryColorHex } from '../utils/categoryColors';
+import { useIsCompact } from '../hooks/useIsCompact';
 import CategoryManager from './CategoryManager';
 import TimeOfDaySelects from './TimeOfDaySelects';
 
@@ -21,6 +24,9 @@ export default function AddTaskForm({
   onDeleteCategory,
 }) {
   const today = new Date();
+  const isCompact = useIsCompact();
+  const weekdayNames = isCompact ? WEEKDAY_ABBR : WEEKDAY_NAMES;
+  const monthNames = isCompact ? MONTH_ABBR_NAMES : MONTH_NAMES;
   const [title, setTitle] = useState('');
   const [hasDueDate, setHasDueDate] = useState(false);
   const [dueDate, setDueDate] = useState('');
@@ -140,7 +146,7 @@ export default function AddTaskForm({
                 className="add-task-interval"
                 aria-label="Day of the week"
               >
-                {WEEKDAY_NAMES.map((name, i) => (
+                {weekdayNames.map((name, i) => (
                   <option key={name} value={i}>
                     {name}
                   </option>
@@ -169,7 +175,7 @@ export default function AddTaskForm({
                   className="add-task-interval"
                   aria-label="Month"
                 >
-                  {MONTH_NAMES.map((name, i) => (
+                  {monthNames.map((name, i) => (
                     <option key={name} value={i}>
                       {name}
                     </option>

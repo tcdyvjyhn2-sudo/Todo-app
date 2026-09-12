@@ -144,6 +144,21 @@ function reactivateDueTasks(state) {
   return changed ? { ...state, tasks } : state;
 }
 
+// Categories are merged rather than replaced wholesale when adopting a
+// remote Dropbox snapshot. A plain "remote wins" sync (as tasks still use)
+// would silently erase local categories the moment the remote copy doesn't
+// carry them - which happens for any device that hasn't pulled a newer
+// remote add yet, or a remote file saved before categories existed at all.
+// Keeping every category id either side has ever seen means a category can
+// only disappear from a device that itself deletes it (which then uploads
+// the deletion), never as a side effect of reading someone else's copy.
+function mergeCategories(localCategories, remoteCategories) {
+  const byId = new Map();
+  for (const c of localCategories) byId.set(c.id, c);
+  for (const c of remoteCategories) byId.set(c.id, c);
+  return Array.from(byId.values());
+}
+
 function describeFailure(err) {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'offline';
   if (err instanceof DropboxAuthError) return 'auth';
@@ -246,8 +261,17 @@ export function useTasks() {
         await uploadState(accessToken, remote);
       }
 
-      const reactivated = reactivateDueTasks(remote);
-      if (reactivated !== remote) {
+      // Tasks still adopt the remote copy wholesale (see the note above), but
+      // categories are merged - see mergeCategories() for why.
+      const localCategoryIds = new Set(stateRef.current.categories.map((c) => c.id));
+      const remoteCategoryIds = new Set(remote.categories.map((c) => c.id));
+      const hasLocalOnlyCategories = [...localCategoryIds].some((id) => !remoteCategoryIds.has(id));
+      const merged = hasLocalOnlyCategories
+        ? { ...remote, categories: mergeCategories(stateRef.current.categories, remote.categories) }
+        : remote;
+
+      const reactivated = reactivateDueTasks(merged);
+      if (reactivated !== merged || hasLocalOnlyCategories) {
         await uploadState(accessToken, reactivated);
       }
 

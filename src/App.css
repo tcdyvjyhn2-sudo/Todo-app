@@ -549,18 +549,58 @@
   padding: 1px 6px;
 }
 
-/* iOS Safari zooms the whole page in when a tapped form control's font-size
-   is under 16px. These all render smaller than that inside their compact
-   rows, so bump them back up just below phone-sized viewports - staying
-   compact on larger screens where the issue doesn't apply. */
+/* iOS Safari zooms the whole page in when a focused form control's
+   font-size is under 16px at the moment it gains focus. Bumping the size
+   only on :focus (rather than all the time) avoids that zoom while a
+   control is actually being used, without permanently inflating every
+   badge's resting size on a phone screen - which used to make each select
+   noticeably wider and push rows into extra wrapped lines. */
 @media (max-width: 480px) {
-  .badge-select,
-  .add-task-date,
-  .add-task-interval,
-  .sync-key-input,
-  .task-title-input,
-  .task-note-input {
+  .badge-select:focus,
+  .add-task-date:focus,
+  .add-task-interval:focus,
+  .sync-key-input:focus,
+  .task-title-input:focus,
+  .task-note-input:focus {
     font-size: 16px;
+  }
+}
+
+/* iPhone-width layout: the task list is the screen's main real estate, so
+   trim every bit of padding/gap that isn't carrying information, and cap
+   how wide a single badge (especially a free-text category name) can get
+   before it starts pushing the row into more wrapped lines than it needs. */
+@media (max-width: 480px) {
+  .task-list {
+    gap: 4px;
+  }
+
+  .task-item {
+    gap: 5px;
+    padding: 4px 6px;
+  }
+
+  .task-meta {
+    gap: 4px;
+  }
+
+  .badge {
+    padding: 1px 6px;
+  }
+
+  .task-handle {
+    padding: 4px 4px;
+  }
+
+  .task-delete {
+    padding: 4px 4px;
+    font-size: 17px;
+  }
+
+  select[aria-label*="Category for"] {
+    max-width: 84px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 

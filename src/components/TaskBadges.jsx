@@ -1,8 +1,10 @@
 import {
   INTERVALS,
   WEEKDAY_NAMES,
+  WEEKDAY_ABBR,
   DAYS_OF_MONTH,
   MONTH_NAMES,
+  MONTH_ABBR_NAMES,
   DEFAULT_TIME_OF_DAY,
   formatDueDate,
   isOverdue,
@@ -10,6 +12,7 @@ import {
   intervalIcon,
 } from '../utils/recurrence';
 import { categoryColorHex } from '../utils/categoryColors';
+import { useIsCompact } from '../hooks/useIsCompact';
 import EditableNote from './EditableNote';
 import TimeOfDayBadge from './TimeOfDayBadge';
 
@@ -22,6 +25,9 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
   const categoryTint = category
     ? `color-mix(in srgb, ${categoryColorHex(category.color)} 28%, var(--surface))`
     : 'var(--border)';
+  const isCompact = useIsCompact();
+  const weekdayNames = isCompact ? WEEKDAY_ABBR : WEEKDAY_NAMES;
+  const monthNames = isCompact ? MONTH_ABBR_NAMES : MONTH_NAMES;
 
   function handleCategoryChange(e) {
     const value = e.target.value;
@@ -127,7 +133,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
             onChange={handleDayOfWeekChange}
             aria-label={`Day of the week for "${task.title}"`}
           >
-            {WEEKDAY_NAMES.map((name, i) => (
+            {weekdayNames.map((name, i) => (
               <option key={name} value={i}>
                 {name}
               </option>
@@ -158,7 +164,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
               onChange={handleMonthOfYearChange}
               aria-label={`Month for "${task.title}"`}
             >
-              {MONTH_NAMES.map((name, i) => (
+              {monthNames.map((name, i) => (
                 <option key={name} value={i}>
                   {name}
                 </option>
