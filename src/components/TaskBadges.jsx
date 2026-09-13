@@ -146,6 +146,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
                 </option>
               ))}
             </select>
+            <span className="freq-separator">at</span>
           </>
         )}
         {task.recurring && task.interval === 'monthly' && (
@@ -164,6 +165,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
                 </option>
               ))}
             </select>
+            <span className="freq-separator">@</span>
           </>
         )}
         {task.recurring && task.interval === 'yearly' && (
@@ -195,6 +197,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
                 </option>
               ))}
             </select>
+            <span className="freq-separator">@</span>
           </>
         )}
 
