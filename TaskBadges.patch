@@ -1,0 +1,20 @@
+--- pristine/Todo-app-claude-task-list-drag-reorder-hg3n4t/src/components/TaskBadges.jsx	2026-09-13 14:46:01.000000000 +0000
++++ repo/Todo-app-claude-task-list-drag-reorder-hg3n4t/src/components/TaskBadges.jsx	2026-09-13 18:09:52.894784924 +0000
+@@ -205,10 +205,13 @@
+           <TimeOfDayBadge task={task} onUpdateTask={onUpdateTask} style={{ background: categoryTint }} />
+         )}
+ 
+-        {task.dueDate && (
+-          <span className={`badge badge-due${overdue ? ' badge-overdue' : ''}`}>
+-            {formatDueDate(task.dueDate, task.timeOfDay)}
+-          </span>
++        {!task.recurring && task.dueDate && (
++          <>
++            {task.timeOfDay && <span className="freq-separator">on</span>}
++            <span className={`badge badge-due${overdue ? ' badge-overdue' : ''}`}>
++              {formatDueDate(task.dueDate, task.timeOfDay)}
++            </span>
++          </>
+         )}
+       </span>
+ 
