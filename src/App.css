@@ -530,8 +530,9 @@
   color: var(--text-h);
   cursor: pointer;
   font-family: inherit;
-  -webkit-appearance: menulist;
-  appearance: auto;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .badge-select:focus-visible {
