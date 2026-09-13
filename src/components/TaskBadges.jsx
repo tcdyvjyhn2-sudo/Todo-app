@@ -205,10 +205,13 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
           <TimeOfDayBadge task={task} onUpdateTask={onUpdateTask} style={{ background: categoryTint }} />
         )}
 
-        {task.dueDate && (
-          <span className={`badge badge-due${overdue ? ' badge-overdue' : ''}`}>
-            {formatDueDate(task.dueDate, task.timeOfDay)}
-          </span>
+        {!task.recurring && task.dueDate && (
+          <>
+            {task.timeOfDay && <span className="freq-separator">on</span>}
+            <span className={`badge badge-due${overdue ? ' badge-overdue' : ''}`}>
+              {formatDueDate(task.dueDate, task.timeOfDay)}
+            </span>
+          </>
         )}
       </span>
 
