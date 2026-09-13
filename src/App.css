@@ -508,6 +508,7 @@
 .task-meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
 }
 
@@ -547,6 +548,16 @@
 .time-edit-done {
   font-size: 11px;
   padding: 1px 6px;
+}
+
+/* Plain connective text ("on", "on the", "@") between the recurrence badge
+   and the schedule detail that follows it - not a badge itself, so it reads
+   as a joining word rather than another pill competing for attention. */
+.freq-separator {
+  font-size: 11px;
+  color: var(--text);
+  opacity: 0.65;
+  white-space: nowrap;
 }
 
 /* iOS Safari zooms the whole page in when a focused form control's

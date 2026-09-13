@@ -2,7 +2,7 @@ export const INTERVALS = [
   { value: 'daily', label: 'Daily' },
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly', label: 'Annual' },
+  { value: 'yearly', label: 'Annually' },
 ];
 
 export const MONTH_NAMES = [
@@ -27,6 +27,23 @@ export const WEEKDAY_NAMES = [
 export const WEEKDAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export const DAYS_OF_MONTH = Array.from({ length: 31 }, (_, i) => i + 1);
+
+// 1 -> "1st", 2 -> "2nd", 3 -> "3rd", 4 -> "4th", 11-13 -> "11th"/"12th"/"13th"
+// (the exception to the usual 1st/2nd/3rd pattern), 21 -> "21st", etc.
+export function ordinalDay(day) {
+  const remainder = day % 100;
+  if (remainder >= 11 && remainder <= 13) return `${day}th`;
+  switch (day % 10) {
+    case 1:
+      return `${day}st`;
+    case 2:
+      return `${day}nd`;
+    case 3:
+      return `${day}rd`;
+    default:
+      return `${day}th`;
+  }
+}
 
 export const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12
 export const MINUTES_5 = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));

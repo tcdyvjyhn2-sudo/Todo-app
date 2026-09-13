@@ -10,6 +10,7 @@ import {
   isOverdue,
   initialOccurrence,
   intervalIcon,
+  ordinalDay,
 } from '../utils/recurrence';
 import { categoryColorHex } from '../utils/categoryColors';
 import { useIsCompact } from '../hooks/useIsCompact';
@@ -125,38 +126,49 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
           ))}
         </select>
 
+        {task.recurring && task.interval === 'daily' && (
+          <span className="freq-separator">@</span>
+        )}
+
         {task.recurring && task.interval === 'weekly' && (
-          <select
-            className="badge badge-select"
-            style={{ background: categoryTint }}
-            value={task.dayOfWeek ?? 0}
-            onChange={handleDayOfWeekChange}
-            aria-label={`Day of the week for "${task.title}"`}
-          >
-            {weekdayNames.map((name, i) => (
-              <option key={name} value={i}>
-                {name}
-              </option>
-            ))}
-          </select>
+          <>
+            <span className="freq-separator">on</span>
+            <select
+              className="badge badge-select"
+              style={{ background: categoryTint }}
+              value={task.dayOfWeek ?? 0}
+              onChange={handleDayOfWeekChange}
+              aria-label={`Day of the week for "${task.title}"`}
+            >
+              {weekdayNames.map((name, i) => (
+                <option key={name} value={i}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </>
         )}
         {task.recurring && task.interval === 'monthly' && (
-          <select
-            className="badge badge-select"
-            style={{ background: categoryTint }}
-            value={task.dayOfMonth ?? 1}
-            onChange={handleDayOfMonthChange}
-            aria-label={`Day of the month for "${task.title}"`}
-          >
-            {DAYS_OF_MONTH.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
+          <>
+            <span className="freq-separator">on the</span>
+            <select
+              className="badge badge-select"
+              style={{ background: categoryTint }}
+              value={task.dayOfMonth ?? 1}
+              onChange={handleDayOfMonthChange}
+              aria-label={`Day of the month for "${task.title}"`}
+            >
+              {DAYS_OF_MONTH.map((d) => (
+                <option key={d} value={d}>
+                  {ordinalDay(d)}
+                </option>
+              ))}
+            </select>
+          </>
         )}
         {task.recurring && task.interval === 'yearly' && (
           <>
+            <span className="freq-separator">on</span>
             <select
               className="badge badge-select"
               style={{ background: categoryTint }}
@@ -179,7 +191,7 @@ export default function TaskBadges({ task, categories, onUpdateTask }) {
             >
               {DAYS_OF_MONTH.map((d) => (
                 <option key={d} value={d}>
-                  {d}
+                  {ordinalDay(d)}
                 </option>
               ))}
             </select>

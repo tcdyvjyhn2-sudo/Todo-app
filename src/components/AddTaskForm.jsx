@@ -8,6 +8,7 @@ import {
   MONTH_ABBR_NAMES,
   DEFAULT_TIME_OF_DAY,
   intervalIcon,
+  ordinalDay,
 } from '../utils/recurrence';
 import { CATEGORY_COLORS, categoryColorHex } from '../utils/categoryColors';
 import { useIsCompact } from '../hooks/useIsCompact';
@@ -162,7 +163,7 @@ export default function AddTaskForm({
               >
                 {DAYS_OF_MONTH.map((d) => (
                   <option key={d} value={d}>
-                    {d}
+                    {ordinalDay(d)}
                   </option>
                 ))}
               </select>
@@ -189,7 +190,7 @@ export default function AddTaskForm({
                 >
                   {DAYS_OF_MONTH.map((d) => (
                     <option key={d} value={d}>
-                      {d}
+                      {ordinalDay(d)}
                     </option>
                   ))}
                 </select>
